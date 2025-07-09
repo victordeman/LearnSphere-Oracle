@@ -1,0 +1,4 @@
+image:
+  style: symbolic illustration
+  steps: 50
+  guidance_scale: 7.5

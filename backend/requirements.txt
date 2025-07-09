@@ -1,0 +1,6 @@
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.2.0
+streamlit>=1.20.0
+# diffusers>=0.11.0  # Uncomment for Stable Diffusion integration
+# torch>=1.10.0      # Uncomment for Stable Diffusion
