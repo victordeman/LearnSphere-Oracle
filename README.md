@@ -63,6 +63,80 @@ The architecture supports iterative development with testing in mind:
 ### Long-Term
 - **Modularity**: Plug in new agents; AI-driven roadmap updates based on usage data.
 
+## Repository Structure
+```
+LearnSphere-Oracle/
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── src/
+│   │   ├── main.py
+│   │   ├── scripts/
+│   │   │   ├── init_db.py
+│   │   │   ├── init_vector_store.py
+│   │   │   └── seed_db.py
+│   │   └── support_systems/
+│   │       └── match_maker/
+│   │           ├── image_generator.py
+│   │           ├── image_pipeline.py
+│   │           ├── image_store.py
+│   │           ├── prompt_generation.py
+│   │           ├── prompt_generator.py
+│   │           ├── prompt_store.py
+│   │           ├── visualization.py
+│   │           └── question_classifier.py  # New: Implements question classification (add this file)
+│   └── tests/
+│       ├── support_systems/
+│       │   ├── test_db_vector_store.py  # Placeholder (empty)
+│       │   ├── test_match_maker.py
+│       │   ├── test_performance_eval.py  # Placeholder
+│       │   ├── test_survey_agent.py  # Placeholder
+│       │   ├── test_synthetic_data.py  # Placeholder
+│       │   └── test_thought_model.py  # Placeholder
+│       ├── test_api/
+│       │   └── test_api.py  # Placeholder
+│       └── test_utils.py  # Placeholder
+├── configs/
+│   ├── app_config.yaml
+│   ├── db_config.yaml
+│   ├── image_config.yaml
+│   └── logging_config.yaml
+├── docs/
+│   ├── api.md
+│   ├── architecture.md
+│   ├── contributing.md
+│   └── setup.md
+├── frontend/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── public/
+│   │   ├── favicon.ico  # Placeholder
+│   │   └── index.html
+│   ├── src/
+│   │   ├── App.js
+│   │   ├── components/
+│   │   │   ├── MatchMaker.js
+│   │   │   └── SurveyForm.js
+│   │   ├── index.js
+│   │   ├── serviceWorker.js
+│   │   └── styles.css
+│   └── tests/
+│       └── test_app.js  # Placeholder
+├── scripts/
+│   ├── deploy.sh
+│   ├── init_db.sh
+│   ├── run.sh
+│   └── setup.sh  # (If not present, add from our previous script)
+├── streamlit/
+│   ├── Dockerfile
+│   ├── app.py
+│   └── requirements.txt
+├── LICENSE
+├── README.md
+├── docker-compose.yml
+└── .gitignore  # Add if missing: ignore __pycache__, .env, etc.
+```
+
 For setup, see [setup.md](../setup.md).
 
 
