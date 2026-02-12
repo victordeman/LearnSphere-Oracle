@@ -1,13 +1,16 @@
 """
-Question Classifier Module
-Classifies survey questions into MBTI and ILS dimensions for scoring.
+Question Classifier Module (ML-Integrated)
+Classifies survey questions into MBTI and ILS dimensions using a trained ML model.
 """
+
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 
 class QuestionClassifier:
     def __init__(self):
-        # Dictionary mapping dimensions to lists of questions (from survey text)
+        # Original questions for training
         self.question_map = {
-            # MBTI: E/I (social interaction, attention)
             "Extrovert_Introvert": [
                 "If you need to approach someone in high authority for a favor, would you prefer to ask them:",
                 "How quickly are you on the dance floor at a social function?",
@@ -25,7 +28,6 @@ class QuestionClassifier:
                 "Would you appear naked on a charity calendar?",
                 "Do you ever run out of things to say when talking to someone you have just met?"
             ],
-            # MBTI: T/F (empathy vs logic)
             "Thinking_Feeling": [
                 "I always seem to find myself rooting for the underdog.",
                 "I admire people who are prepared to admit they were wrong.",
@@ -42,7 +44,7 @@ class QuestionClassifier:
                 "I have always ensured that I put aside some quality time to spend with my partner.",
                 "I always buy my partner a card or present on St.Valentine’s Day.",
                 "On occasions my eyes have filled up with tears when watching a movie, be it happy or sad.",
-                "I would always go out of my way to help someone who is going through an emotional trauma.",
+                "I would always go out of your way to help someone who is going through an emotional trauma.",
                 "I would find it extremely difficult to tell anyone some real home truths.",
                 "I have never found it difficult to forgive and forget.",
                 "I like stroking cats and/or dogs.",
@@ -51,15 +53,13 @@ class QuestionClassifier:
                 "I often feel happy for other people.",
                 "People should be much more concerned about other people."
             ],
-            # MBTI: S/N, J/P, and other (grouped by sections like Success/Risk, Optimist/Pessimist, etc.)
-            "Sensing_Intuitive": [ # Practical vs imaginative, risk
+            "Sensing_Intuitive": [
                 "Getting on in business requires ruthlessness.",
                 "My success is due to my ability to think strategically while overseeing day-to-day activities.",
                 "My success is due to my full understanding of the marketplace and competitors’ trends.",
                 "The higher the risk, the higher the potential return.",
                 "Regulations stifle creativity.",
                 "Success belongs to the bold."
-                # Add more from sections
             ],
             "Judging_Perceiving": [
                 "I believe that superstitious beliefs, e.g. ‘breaking a mirror brings 7 years’ bad luck’, are bunkum.",
@@ -76,10 +76,8 @@ class QuestionClassifier:
                 "Ultimately, good will always triumph over evil.",
                 "Something positive always comes from adversity.",
                 "I am all in favor of taking calculated risks."
-                # Add managing and communicating
             ],
-            # ILS dimensions (infer from questions, e.g., visual/verbal from communication prefs)
-            "Active_Reflective": [ # Group vs solitary
+            "Active_Reflective": [
                 "To manage people well you have to get fully involved in the detail.",
                 "Above all else, good management includes trusting people to do the job.",
                 "I feel happiest when I can implement defined regulatory processes."
@@ -92,20 +90,65 @@ class QuestionClassifier:
                 "My success is due to my ability to think laterally and outside of the box.",
                 "I wish I could more often make novel links between previously unconnected issues."
             ]
-            # Add more as needed; this is a starter mapping
         }
 
+        # Augmentation function
+        def paraphrase(question):
+            replacements = {
+                'I': 'One',
+                'you': 'someone',
+                'my': 'one\'s',
+                'would': 'might',
+                'do': 'does',
+                'is': 'seems',
+                'are': 'appear'
+            }
+            words = question.split()
+            paraphrased = [replacements.get(word.lower(), word) for word in words]
+            return ' '.join(paraphrased)
+
+        # Prepare augmented data
+        questions = []
+        labels = []
+        for label, qs in self.question_map.items():
+            for q in qs:
+                questions.append(q)
+                labels.append(label)
+                # Paraphrase 1
+                questions.append(paraphrase(q))
+                labels.append(label)
+                # Paraphrase 2
+                words = q.split()
+                if len(words) > 5:
+                    reversed_part = ' '.join(words[::-1][:3])
+                    questions.append(reversed_part + ' ' + ' '.join(words[3:]))
+                else:
+                    questions.append(q)
+                labels.append(label)
+
+        df = pd.DataFrame({'question': questions, 'label': labels})
+
+        # Train model
+        self.vectorizer = TfidfVectorizer(ngram_range=(1, 2), min_df=1)
+        X = self.vectorizer.fit_transform(df['question'])
+        y = df['label']
+
+        self.model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=500)
+        self.model.fit(X, y)
+
     def classify_question(self, question_text):
-        for dimension, questions in self.question_map.items():
-            if question_text in questions:
-                return dimension
-        return "Unclassified"
+        X_new = self.vectorizer.transform([question_text])
+        return self.model.predict(X_new)[0]
 
     def score_from_answers(self, questions, answers):
-        # Placeholder: Aggregate scores per dimension based on answers (e.g., yes/no or 1-5 scale)
-        scores = {dim: 0 for dim in self.question_map}
+        scores = {dim: 0.0 for dim in set(self.question_map.keys())}
+        counts = {dim: 0 for dim in scores}
         for q, a in zip(questions, answers):
             dim = self.classify_question(q)
-            if dim != "Unclassified":
-                scores[dim] += a  # Assume numeric answers; adjust for scale
+            scores[dim] += a  # Assume numeric answer (e.g., 1-5 scale)
+            counts[dim] += 1
+        # Average scores
+        for dim in scores:
+            if counts[dim] > 0:
+                scores[dim] /= counts[dim]
         return scores
