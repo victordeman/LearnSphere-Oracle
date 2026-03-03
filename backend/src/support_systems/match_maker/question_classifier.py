@@ -133,7 +133,7 @@ class QuestionClassifier:
         X = self.vectorizer.fit_transform(df['question'])
         y = df['label']
 
-        self.model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=500)
+        self.model = LogisticRegression(solver='lbfgs', max_iter=500)
         self.model.fit(X, y)
 
     def classify_question(self, question_text):
