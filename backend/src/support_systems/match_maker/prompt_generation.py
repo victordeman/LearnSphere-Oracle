@@ -8,7 +8,24 @@ class PromptGeneration:
         self.prompt_generator = PromptGenerator()
         self.question_classifier = QuestionClassifier()  # New: For raw question handling
 
-    # Existing methods...
+    def score_mbti(self, row):
+        e_i = "E" if row["Extrovert"] > row["Introvert"] else "I"
+        s_n = "S" if row["Sensing"] > row["Intuitive"] else "N"
+        t_f = "T" if row["Thinking"] > row["Feeling"] else "F"
+        j_p = "J" if row["Judging"] > row["Perceiving"] else "P"
+        return f"{e_i}{s_n}{t_f}{j_p}"
+
+    def score_ils(self, row):
+        return {
+            "Active_Reflective": row["Active"] - row["Reflective"],
+            "Sensing_Intuitive_ILS": row["Sensing_FSLSM"] - row["Intuitive_FSLSM"],
+            "Visual_Verbal": row["Visual"] - row["Verbal"],
+            "Sequential_Global": row["Sequential"] - row["Global"]
+        }
+
+    def augment_data(self, df):
+        # Placeholder for data augmentation logic
+        return df
 
     def integrate_sn(self, mbti_type, ils_sn_score):
         mbti_sn = mbti_type[1]
@@ -38,7 +55,10 @@ class PromptGeneration:
                     df["Sensing"] = score / 2  # Example aggregation; adjust
                     df["Intuitive"] = score / 2
                 # Extend for other dims
+        
+        # Filter out invalid rows (example condition)
         df = df[~df[["Active", "Reflective", "Sensing_FSLSM", "Intuitive_FSLSM", "Visual", "Verbal", "Sequential", "Global"]].eq(11).any(axis=1)]
+        
         df = self.augment_data(df)
         df["MBTI_Type"] = df.apply(self.score_mbti, axis=1)
         ils_scores = df.apply(self.score_ils, axis=1)
