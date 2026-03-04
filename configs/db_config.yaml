@@ -1,6 +1,7 @@
 database:
-  host: localhost
+  host: db
   port: 5432
   name: learnsphere
   user: user
   password: password
+  url: postgresql://user:password@db:5432/learnsphere
