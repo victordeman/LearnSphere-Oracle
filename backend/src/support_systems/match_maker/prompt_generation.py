@@ -16,34 +16,16 @@ class PromptGeneration:
         return f"{e_i}{s_n}{t_f}{j_p}"
 
     def score_ils(self, row):
-        ar = row["Active"] - row["Reflective"]
-        sn = row["Sensing_FSLSM"] - row["Intuitive_FSLSM"]
-        vv = row["Visual"] - row["Verbal"]
-        sg = row["Sequential"] - row["Global"]
         return {
-            "Active_Reflective": ar,
-            "Sensing_Intuitive_ILS": sn,
-            "Visual_Verbal": vv,
-            "Sequential_Global": sg
+            "Active_Reflective": row["Active"] - row["Reflective"],
+            "Sensing_Intuitive_ILS": row["Sensing_FSLSM"] - row["Intuitive_FSLSM"],
+            "Visual_Verbal": row["Visual"] - row["Verbal"],
+            "Sequential_Global": row["Sequential"] - row["Global"]
         }
 
-    def augment_data(self, df, n_synthetic=5):
-        synthetic_rows = []
-        for _ in range(n_synthetic):
-            new_row = {
-                "StudentID": f"SYNTH_{np.random.randint(1000, 9999)}",
-                "Extrovert": np.random.randint(1, 10), "Introvert": np.random.randint(1, 10),
-                "Sensing": np.random.randint(1, 10), "Intuitive": np.random.randint(1, 10),
-                "Thinking": np.random.randint(1, 10), "Feeling": np.random.randint(1, 10),
-                "Judging": np.random.randint(1, 10), "Perceiving": np.random.randint(1, 10),
-                "Active": np.random.randint(1, 11), "Reflective": np.random.randint(1, 11),
-                "Sensing_FSLSM": np.random.randint(1, 11), "Intuitive_FSLSM": np.random.randint(1, 11),
-                "Visual": np.random.randint(1, 11), "Verbal": np.random.randint(1, 11),
-                "Sequential": np.random.randint(1, 11), "Global": np.random.randint(1, 11),
-                "Text_Time": np.random.randint(300, 900)
-            }
-            synthetic_rows.append(new_row)
-        return pd.concat([df, pd.DataFrame(synthetic_rows)], ignore_index=True)
+    def augment_data(self, df):
+        # Placeholder for data augmentation logic
+        return df
 
     def integrate_sn(self, mbti_type, ils_sn_score):
         mbti_sn = mbti_type[1]
@@ -73,7 +55,10 @@ class PromptGeneration:
                     df["Sensing"] = score / 2  # Example aggregation; adjust
                     df["Intuitive"] = score / 2
                 # Extend for other dims
+        
+        # Filter out invalid rows (example condition)
         df = df[~df[["Active", "Reflective", "Sensing_FSLSM", "Intuitive_FSLSM", "Visual", "Verbal", "Sequential", "Global"]].eq(11).any(axis=1)]
+        
         df = self.augment_data(df)
         df["MBTI_Type"] = df.apply(self.score_mbti, axis=1)
         ils_scores = df.apply(self.score_ils, axis=1)
