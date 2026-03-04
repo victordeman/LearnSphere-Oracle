@@ -1,4 +1,6 @@
 from sklearn.cluster import KMeans
+from .image_generator import ImageGenerator
+from .image_store import ImageStore
 
 class ImagePipeline:
     def __init__(self):

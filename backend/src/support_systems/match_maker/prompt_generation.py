@@ -8,7 +8,42 @@ class PromptGeneration:
         self.prompt_generator = PromptGenerator()
         self.question_classifier = QuestionClassifier()  # New: For raw question handling
 
-    # Existing methods...
+    def score_mbti(self, row):
+        e_i = "E" if row["Extrovert"] > row["Introvert"] else "I"
+        s_n = "S" if row["Sensing"] > row["Intuitive"] else "N"
+        t_f = "T" if row["Thinking"] > row["Feeling"] else "F"
+        j_p = "J" if row["Judging"] > row["Perceiving"] else "P"
+        return f"{e_i}{s_n}{t_f}{j_p}"
+
+    def score_ils(self, row):
+        ar = row["Active"] - row["Reflective"]
+        sn = row["Sensing_FSLSM"] - row["Intuitive_FSLSM"]
+        vv = row["Visual"] - row["Verbal"]
+        sg = row["Sequential"] - row["Global"]
+        return {
+            "Active_Reflective": ar,
+            "Sensing_Intuitive_ILS": sn,
+            "Visual_Verbal": vv,
+            "Sequential_Global": sg
+        }
+
+    def augment_data(self, df, n_synthetic=5):
+        synthetic_rows = []
+        for _ in range(n_synthetic):
+            new_row = {
+                "StudentID": f"SYNTH_{np.random.randint(1000, 9999)}",
+                "Extrovert": np.random.randint(1, 10), "Introvert": np.random.randint(1, 10),
+                "Sensing": np.random.randint(1, 10), "Intuitive": np.random.randint(1, 10),
+                "Thinking": np.random.randint(1, 10), "Feeling": np.random.randint(1, 10),
+                "Judging": np.random.randint(1, 10), "Perceiving": np.random.randint(1, 10),
+                "Active": np.random.randint(1, 11), "Reflective": np.random.randint(1, 11),
+                "Sensing_FSLSM": np.random.randint(1, 11), "Intuitive_FSLSM": np.random.randint(1, 11),
+                "Visual": np.random.randint(1, 11), "Verbal": np.random.randint(1, 11),
+                "Sequential": np.random.randint(1, 11), "Global": np.random.randint(1, 11),
+                "Text_Time": np.random.randint(300, 900)
+            }
+            synthetic_rows.append(new_row)
+        return pd.concat([df, pd.DataFrame(synthetic_rows)], ignore_index=True)
 
     def integrate_sn(self, mbti_type, ils_sn_score):
         mbti_sn = mbti_type[1]
