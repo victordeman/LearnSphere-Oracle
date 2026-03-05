@@ -1,12 +1,15 @@
 from sklearn.cluster import KMeans
 import pandas as pd
+import os
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 from .image_generator import ImageGenerator
 from .image_store import ImageStore
 
 class ImagePipeline:
-    def __init__(self, qdrant_host="localhost", qdrant_port=6333):
+    def __init__(self, qdrant_host=None, qdrant_port=None):
+        qdrant_host = qdrant_host or os.getenv("QDRANT_HOST", "localhost")
+        qdrant_port = qdrant_port or int(os.getenv("QDRANT_PORT", 6333))
         self.image_generator = ImageGenerator()
         self.image_store = ImageStore()
         self.qdrant_client = QdrantClient(host=qdrant_host, port=qdrant_port)
