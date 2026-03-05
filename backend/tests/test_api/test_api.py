@@ -11,15 +11,15 @@ class TestMatchAPI(unittest.TestCase):
     def test_get_matches(self, mock_qdrant_class):
         # Setup mock
         mock_client = mock_qdrant_class.return_value
-
+        
         mock_hit_similar = MagicMock()
         mock_hit_similar.payload = {"student_id": "STUDENT_2"}
-
+        
         mock_hit_comp = MagicMock()
         mock_hit_comp.payload = {"student_id": "STUDENT_2"}
 
         mock_client.search.side_effect = [
-            [mock_hit_similar], [mock_hit_comp],
+            [mock_hit_similar], [mock_hit_comp], 
             [mock_hit_similar], [mock_hit_comp]
         ]
 

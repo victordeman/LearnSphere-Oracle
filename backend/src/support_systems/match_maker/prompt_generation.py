@@ -55,10 +55,10 @@ class PromptGeneration:
                     df["Sensing"] = score / 2  # Example aggregation; adjust
                     df["Intuitive"] = score / 2
                 # Extend for other dims
-
+        
         # Filter out invalid rows (example condition)
         df = df[~df[["Active", "Reflective", "Sensing_FSLSM", "Intuitive_FSLSM", "Visual", "Verbal", "Sequential", "Global"]].eq(11).any(axis=1)]
-
+        
         df = self.augment_data(df)
         df["MBTI_Type"] = df.apply(self.score_mbti, axis=1)
         ils_scores = df.apply(self.score_ils, axis=1)

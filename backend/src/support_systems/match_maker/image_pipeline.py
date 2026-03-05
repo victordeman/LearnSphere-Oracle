@@ -1,12 +1,15 @@
 from sklearn.cluster import KMeans
 import pandas as pd
+import os
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 from .image_generator import ImageGenerator
 from .image_store import ImageStore
 
 class ImagePipeline:
-    def __init__(self, qdrant_host="localhost", qdrant_port=6333):
+    def __init__(self, qdrant_host=None, qdrant_port=None):
+        qdrant_host = qdrant_host or os.getenv("QDRANT_HOST", "localhost")
+        qdrant_port = qdrant_port or int(os.getenv("QDRANT_PORT", 6333))
         self.image_generator = ImageGenerator()
         self.image_store = ImageStore()
         self.qdrant_client = QdrantClient(host=qdrant_host, port=qdrant_port)
@@ -29,7 +32,7 @@ class ImagePipeline:
 
     def cluster_and_recommend(self, df, n_clusters=3):
         features = self._prepare_vectors(df)
-
+        
         # Upload to Qdrant
         points = []
         for i, row in df.iterrows():
@@ -49,7 +52,7 @@ class ImagePipeline:
         for i, row in df.iterrows():
             student_id = row["StudentID"]
             vector = features.iloc[i].values.tolist()
-
+            
             # Similar partners (nearest neighbors)
             similar_search = self.qdrant_client.search(
                 collection_name=self.collection_name,
@@ -57,18 +60,18 @@ class ImagePipeline:
                 limit=3  # Including self
             )
             similar_partners = [hit.payload["student_id"] for hit in similar_search if hit.payload["student_id"] != student_id]
-
+            
             # Complementary partners (negative vector for some traits)
             comp_vector = vector.copy()
             comp_vector[4] = 1 - comp_vector[4]  # Flip E/I
-
+            
             complementary_search = self.qdrant_client.search(
                 collection_name=self.collection_name,
                 query_vector=comp_vector,
                 limit=2
             )
             complementary_partners = [hit.payload["student_id"] for hit in complementary_search if hit.payload["student_id"] != student_id]
-
+            
             recommendations[student_id] = {
                 "similar_partners": similar_partners[:2],
                 "complementary_partners": complementary_partners[:2]

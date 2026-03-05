@@ -3,9 +3,9 @@ from qdrant_client.http.models import Distance, VectorParams
 
 def init_qdrant():
     client = QdrantClient(host="localhost", port=6333)
-
+    
     collection_name = "student_profiles"
-
+    
     # Try to recreate collection
     client.recreate_collection(
         collection_name=collection_name,
