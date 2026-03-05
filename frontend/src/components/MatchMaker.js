@@ -1,6 +1,6 @@
 import React from 'react';
 import SurveyForm from './SurveyForm';
-import './styles.css';
+import '../styles.css';
 
 const MatchMaker = () => {
   return (
